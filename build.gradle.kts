@@ -33,3 +33,89 @@ tasks.test {
 application {
     mainClass.set("app.ui.ApplicationKt")
 }
+
+open class CreateIconSet : DefaultTask() {
+    @TaskAction
+    fun build() {
+        val iconDirPath = "src/main/resources/MyIcon.iconset"
+        val iconDir = File(iconDirPath)
+        iconDir.mkdirs()
+        listOf(
+            listOf(16, false),
+            listOf(32, true),
+            listOf(32, false),
+            listOf(64, true),
+            listOf(64, false),
+            listOf(128, false),
+            listOf(256, true),
+            listOf(256, false),
+            listOf(512, true),
+            listOf(512, false),
+            listOf(1028, false),
+        ).forEach { items ->
+            val size = items.first().toString()
+            val halfSize = items.first() as Int / 2
+            val double = items.last() as Boolean
+            val name = if (double) "${halfSize}x$halfSize@2" else "${size}x$size"
+
+            project.exec {
+                executable("sips")
+                args(
+                    "-z",
+                    size,
+                    size,
+                    "src/main/resources/icon.png",
+                    "--out",
+                    "$iconDirPath/icon_$name.png"
+                )
+            }
+        }
+        project.exec {
+            executable("iconutil")
+            args(
+                "-c",
+                "icns",
+                "src/main/resources/MyIcon.iconset"
+            )
+        }
+        iconDir.deleteRecursively()
+    }
+}
+
+tasks.register<CreateIconSet>("createIcons") {
+    group = "distribution"
+}
+
+open class PackageTask : DefaultTask() {
+    @TaskAction
+    fun build() {
+        val icon = if (System.getProperty("os.name").lowercase().contains("win")) {
+            "src/main/resources/icon.png"
+        } else "src/main/resources/MyIcon.icns"
+
+        project.exec {
+            executable("jpackage")
+            args(
+                "--input",
+                "build/libs",
+                "--name",
+                "Prayer Importer",
+                "--dest",
+                "build",
+                "--main-jar",
+                "prayer-importer-all.jar",
+                "--main-class",
+                "app.ui.ApplicationKt",
+                "--type",
+                "dmg",
+                "--icon",
+                icon
+            )
+        }
+    }
+}
+
+tasks.register<PackageTask>("package") {
+    group = "distribution"
+    dependsOn(":shadowJar")
+}

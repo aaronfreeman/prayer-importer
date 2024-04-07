@@ -9,8 +9,11 @@ permissions:
 
 jobs:
   build:
-    name: Unit Tests
-    runs-on: ubuntu-latest
+    name: Prayer Importer on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ macos-latest, windows-latest ]
 
     steps:
       - uses: actions/checkout@v4
@@ -25,10 +28,6 @@ jobs:
         uses: gradle/gradle-build-action@937999e9cc2425eddc7fd62d1053baf041147db7
         with:
           arguments: test
-      - name: Build
-        uses: gradle/gradle-build-action@937999e9cc2425eddc7fd62d1053baf041147db7
-        with:
-          arguments: shadowJar
 
       - name: Test Report
         uses: dorny/test-reporter@v1
@@ -37,3 +36,14 @@ jobs:
           name: Unit Test Results
           path: build/test-results/**/*.xml
           reporter: java-junit
+
+      - name: Build
+        uses: gradle/gradle-build-action@937999e9cc2425eddc7fd62d1053baf041147db7
+        with:
+          arguments: package
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v2
+        with:
+          name: Prayer-Importer-${{ matrix.os }}
+          path: build/Prayer Importer*

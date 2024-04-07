@@ -57,7 +57,7 @@ class App : Application() {
         val scene = Scene(root, 650.0, 320.0)
 
         with(primaryStage) {
-            title = "Prayer Request Transfer"
+            title = "Prayer Request Import"
             this.scene = scene
             show()
         }
