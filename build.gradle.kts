@@ -89,9 +89,10 @@ tasks.register<CreateIconSet>("createIcons") {
 open class PackageTask : DefaultTask() {
     @TaskAction
     fun build() {
-        val icon = if (System.getProperty("os.name").lowercase().contains("win")) {
-            "src/main/resources/icon.png"
-        } else "src/main/resources/MyIcon.icns"
+        val isWindow = System.getProperty("os.name").lowercase().contains("win")
+
+        val icon = if (isWindow) "src/main/resources/icon.png" else "src/main/resources/MyIcon.icns"
+        val type = if (isWindow) "exe" else "dmg"
 
         project.exec {
             executable("jpackage")
@@ -107,7 +108,7 @@ open class PackageTask : DefaultTask() {
                 "--main-class",
                 "app.ui.ApplicationKt",
                 "--type",
-                "dmg",
+                type,
                 "--icon",
                 icon
             )
