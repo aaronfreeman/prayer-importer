@@ -1,0 +1,31 @@
+name: GraalVM Native Image builds
+on: [ push ]
+jobs:
+  build:
+    name: PrayerImporter on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ macos-latest, windows-latest, ubuntu-latest ]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '21'
+          distribution: 'graalvm'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          native-image-job-reports: 'true'
+      - name: Validate Gradle wrapper
+        uses: gradle/wrapper-validation-action@e6e38bacfdf1a337459f332974bb2327a31aaf4b
+      - name: Run Tests
+        uses: gradle/gradle-build-action@937999e9cc2425eddc7fd62d1053baf041147db7
+        with:
+          arguments: shadowJar
+      - name: Build Native Image
+        run: native-image -jar build/libs/prayer-importer-all.jar PrayerImporter
+      - name: Upload binary
+        uses: actions/upload-artifact@v2
+        with:
+          name: PrayerImporter-${{ matrix.os }}
+          path: PrayerImporter*
