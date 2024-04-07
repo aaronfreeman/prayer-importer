@@ -25,6 +25,10 @@ jobs:
         uses: gradle/gradle-build-action@937999e9cc2425eddc7fd62d1053baf041147db7
         with:
           arguments: test
+      - name: Build
+        uses: gradle/gradle-build-action@937999e9cc2425eddc7fd62d1053baf041147db7
+        with:
+          arguments: shadowJar
 
       - name: Test Report
         uses: dorny/test-reporter@v1
